@@ -14,7 +14,7 @@ from tqdm.auto import tqdm
 from torch.utils.data import DataLoader
 
 from src.ab_compartment.datasets import CellBigWigConfig, MultiCellBPLevelRangeCompartmentBigWigFusionDataset, MultiCellRangeCompartmentBigWigFusionDataset
-from src.ab_compartment.models import BPLevelFusionRangePredictor, CrossCompartmentFusionRangePredictor
+from src.ab_compartment.models import BPLevelFusionRangePredictor, StrandABCFusionRangePredictor
 from train_fusion_compartment import parse_chroms
 from train_fusion_compartment_range import collate
 
@@ -329,7 +329,7 @@ def main():
             bp_stem_kernels=args.bp_stem_kernels,
         ).to(device)
     else:
-        model = CrossCompartmentFusionRangePredictor(
+        model = StrandABCFusionRangePredictor(
             d_model=args.d_model,
             block_size=args.input_length,
             depth=args.depth,

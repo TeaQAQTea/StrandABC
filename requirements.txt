@@ -1,0 +1,10 @@
+torch>=2.5,<3
+numpy
+pandas
+scipy
+scikit-learn
+pyBigWig
+pyfaidx
+tqdm
+# Optional accelerated kernels: flash-linear-attention (fla).
+# Use the same backend/environment as the released checkpoints for reproduction.

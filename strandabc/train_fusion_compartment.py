@@ -11,7 +11,7 @@ from sklearn.metrics import accuracy_score, mean_absolute_error, mean_squared_er
 from torch.utils.data import DataLoader
 
 from src.ab_compartment.datasets import CompartmentBigWigFusionDataset
-from src.ab_compartment.models import CrossCompartmentFusionCompartmentPredictor
+from src.ab_compartment.models import StrandABCFusionCompartmentPredictor
 
 
 def parse_chroms(text: str) -> list[str]:
@@ -136,7 +136,7 @@ def main():
     )
 
     device = torch.device(args.device)
-    model = CrossCompartmentFusionCompartmentPredictor(
+    model = StrandABCFusionCompartmentPredictor(
         d_model=args.d_model,
         block_size=args.input_length,
         depth=args.depth,

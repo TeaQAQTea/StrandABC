@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 cd "${PROJECT_DIR}"
 
-PYTHON="${PYTHON:-python}"
+PYTHON="${PYTHON:-/home/zwang/.conda/envs/torch25/bin/python}"
 CKPT="${CKPT:?set CKPT to a trained checkpoint path}"
 FASTA="${FASTA:?set FASTA to a reference genome FASTA path}"
 PLUS_BW="${PLUS_BW:?set PLUS_BW to a plus-strand signal bigWig path}"
@@ -27,7 +27,10 @@ OUTPUT_PREFIX="${OUTPUT_PREFIX:-${OUT_DIR}/compartment_center1p1mb_100kb}"
 
 mkdir -p "${OUT_DIR}"
 output="${OUT_DIR}/${CELL}_${PREDICTION_SET}_test_predictions.tsv"
-rm -f "${output}"
+if [[ -e "${output}" ]]; then
+  echo "Refusing to overwrite existing predictions: ${output}" >&2
+  exit 1
+fi
 
 IFS=',' read -r -a chrom_array <<< "${CHROMS}"
 for chrom in "${chrom_array[@]}"; do

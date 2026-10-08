@@ -12,7 +12,7 @@ import pyBigWig
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.ab_compartment.datasets import BPLevelRangeCompartmentBigWigFusionDataset, RangeCompartmentBigWigFusionDataset
-from src.ab_compartment.models import BPLevelFusionRangePredictor, CrossCompartmentFusionRangePredictor
+from src.ab_compartment.models import BPLevelFusionRangePredictor, StrandABCFusionRangePredictor
 from train_fusion_compartment import parse_chroms
 from train_fusion_compartment_range import collate
 
@@ -74,7 +74,7 @@ def build_model(checkpoint: str, args) -> tuple[torch.nn.Module, dict]:
             bp_stem_kernels=bp_stem_kernels,
         )
     else:
-        model = CrossCompartmentFusionRangePredictor(
+        model = StrandABCFusionRangePredictor(
             d_model=int(train_args.get("d_model", 128)),
             block_size=int(train_args.get("input_length", args.input_length)),
             depth=int(train_args.get("depth", 2)),

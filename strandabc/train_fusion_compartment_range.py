@@ -14,7 +14,7 @@ from tqdm.auto import tqdm
 from torch.utils.data import DataLoader
 
 from src.ab_compartment.datasets import RangeCompartmentBigWigFusionDataset
-from src.ab_compartment.models import CrossCompartmentFusionRangePredictor
+from src.ab_compartment.models import StrandABCFusionRangePredictor
 from train_fusion_compartment import parse_chroms
 
 
@@ -160,7 +160,7 @@ def main():
     val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers, collate_fn=collate)
 
     device = torch.device(args.device)
-    model = CrossCompartmentFusionRangePredictor(
+    model = StrandABCFusionRangePredictor(
         d_model=args.d_model,
         block_size=args.input_length,
         depth=args.depth,

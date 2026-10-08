@@ -1,0 +1,4 @@
+cell	fasta	plus_bigwig	minus_bigwig	target_bigwig
+K562	/path/to/hg38.fa	/path/to/K562.plus.signed_q99clip.hg38.bw	/path/to/K562.minus.signed_q99clip.hg38.bw	/path/to/K562.compartment.bw
+GM12878	/path/to/hg38.fa	/path/to/GM12878.plus.signed_q99clip.hg38.bw	/path/to/GM12878.minus.signed_q99clip.hg38.bw	/path/to/GM12878.compartment.bw
+HCT116	/path/to/hg38.fa	/path/to/HCT116.plus.signed_q99clip.hg38.bw	/path/to/HCT116.minus.signed_q99clip.hg38.bw	/path/to/HCT116.compartment.bw

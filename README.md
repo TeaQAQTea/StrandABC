@@ -1,8 +1,26 @@
-# CrossCompartment
+# StrandABC
 
-CrossCompartment predicts A/B compartment tracks from DNA sequence and paired strand-specific transcription signal tracks, such as GRO-seq, PRO-seq, or RO-seq plus/minus bigWig files.
+StrandABC predicts A/B compartment tracks from DNA sequence and paired strand-specific transcription signal tracks, such as GRO-seq, PRO-seq, or RO-seq plus/minus bigWig files.
 
 The repository is intentionally small: it contains the model code, dataset loaders, training entrypoints, prediction scripts, and aggregation utilities needed to train a range-level compartment model and score predictions at 100 kb resolution.
+
+The model's canonical name is **StrandABC** (formerly released as StrandComp).
+See [reproduction and checkpoint notes](docs/REPRODUCTION.md) for the final
+three-cell protocol, current RNA sources, and compatibility details.
+
+```text
+StrandABC/
+  README.md
+  requirements.txt
+  docs/REPRODUCTION.md
+  scripts/validate_release.py
+  strandabc/
+    checkpoints/                   # full, RO-only, no-strand-fusion weights
+    configs/                       # portable manifest template
+    src/ab_compartment/strandabc.py # canonical model import
+    src/models/StrandABC/           # sequence/strand backbone
+    scripts/                       # train, predict, aggregate
+```
 
 ## Environment
 
@@ -14,10 +32,12 @@ python -m pip install torch numpy pandas scipy scikit-learn pyBigWig pyfaidx tqd
 
 Required Python packages include `torch`, `numpy`, `pandas`, `scipy`, `scikit-learn`, `pyBigWig`, `pyfaidx`, and `tqdm`.
 
-All commands below are run from the package directory.
+All commands below are run from the package directory. This is a locally reorganized
+copy of the previously released StrandComp repository; the original remote is
+unchanged. Model parameters and released checkpoint bytes are unchanged.
 
 ```bash
-cd <package-directory>
+cd strandabc
 ```
 
 ## Input Data
@@ -79,8 +99,8 @@ python train_fusion_compartment_range.py \
   --minus-bigwig "${MINUS_BW}" \
   --target-bigwig "${TARGET_BW}" \
   --output-dir "${MODEL_DIR}" \
-  --train-chroms chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22 \
-  --val-chroms chr8 \
+  --train-chroms chr1,chr2,chr3,chr4,chr5,chr7,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22 \
+  --val-chroms chr6 \
   --range-size 1650000 \
   --bin-size 2200 \
   --stride 550000 \
@@ -89,7 +109,7 @@ python train_fusion_compartment_range.py \
   --epochs 20
 ```
 
-Multi-cell training:
+Multi-cell training (the final architecture settings; use a three-cell manifest):
 
 ```bash
 python train_multicell_fusion_compartment_range.py \
@@ -102,8 +122,18 @@ python train_multicell_fusion_compartment_range.py \
   --bin-size 2200 \
   --stride 550000 \
   --target-threshold 0.0 \
-  --batch-size 4 \
-  --epochs 20
+  --supervised-center-size 1100000 \
+  --bp-stem-type conv_pool \
+  --bp-downsample-strides 5,5,4,11,2 \
+  --bp-stem-kernels 15,9,7,5,3 \
+  --fusion-method simple_concat \
+  --loss-type mse --sign-loss-weight 0 \
+  --no-per-range-zscore --track-noise-std 0 \
+  --d-model 128 --depth 3 --num-heads 4 --dropout 0.12 \
+  --decoder-layers 1 --decoder-kernel-size 3 --decoder-type conv \
+  --lr 0.0001 --weight-decay 0.03 --no-encoder-checkpoint \
+  --no-validate-ranges --batch-size 4 --num-workers 10 --seed 43 \
+  --epochs 80 --eval-every 3 --early-stopping-patience 8
 ```
 
 Training writes `last.pt`, best checkpoints, `metadata.json`, and training history files into `--output-dir`.
@@ -113,7 +143,7 @@ Training writes `last.pt`, best checkpoints, `metadata.json`, and training histo
 Use the generic launch script for a checkpoint and a plus/minus bigWig pair:
 
 ```bash
-PYTHON=python \
+PYTHON=/home/zwang/.conda/envs/torch25/bin/python \
 CKPT="${CKPT}" \
 CELL=Sample \
 FASTA="${FASTA}" \

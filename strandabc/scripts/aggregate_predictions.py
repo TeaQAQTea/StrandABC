@@ -19,7 +19,7 @@ AUTOSOMES = {
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Aggregate autosome CrossCompartment predictions to 100kb bins using only the center region of each range."
+        description="Aggregate autosome StrandABC predictions to 100kb bins using only the center region of each range."
     )
     parser.add_argument("--prediction-dir", type=Path, required=True)
     parser.add_argument("--output-prefix", type=Path, required=True)
@@ -101,8 +101,8 @@ def dedupe_source_bins(path: Path, chroms: set[str], center_size: int, chunksize
             continue
         grouped_chunks.append(
             chunk.groupby(["chrom", "start", "end"], as_index=False).agg(
-                pred_score=("pred_score", "mean"),
-                source_target_score=("target_score", "mean"),
+                pred_sum=("pred_score", "sum"),
+                target_sum=("target_score", "sum"),
                 n_overlaps=("pred_score", "size"),
             )
         )
@@ -112,13 +112,15 @@ def dedupe_source_bins(path: Path, chroms: set[str], center_size: int, chunksize
     grouped = (
         grouped.groupby(["chrom", "start", "end"], as_index=False)
         .agg(
-            pred_score=("pred_score", "mean"),
-            source_target_score=("source_target_score", "mean"),
+            pred_sum=("pred_sum", "sum"),
+            target_sum=("target_sum", "sum"),
             n_overlaps=("n_overlaps", "sum"),
         )
         .sort_values(["chrom", "start", "end"])
         .reset_index(drop=True)
     )
+    grouped["pred_score"] = grouped.pop("pred_sum") / grouped["n_overlaps"]
+    grouped["source_target_score"] = grouped.pop("target_sum") / grouped["n_overlaps"]
     return grouped, n_raw, n_center
 
 
@@ -133,7 +135,7 @@ def label_bw_100kb(cell: str, label_bws: dict[str, str], chroms: list[str], bin_
             starts = np.arange(0, chrom_len - bin_size + 1, bin_size, dtype=np.int64)
             for i, start in enumerate(starts, start=1):
                 end = int(start + bin_size)
-                value = bw.stats(chrom, int(start), end, type="mean")[0]
+                value = bw.stats(chrom, int(start), end, type="mean", exact=True)[0]
                 value = 0.0 if value is None or not np.isfinite(float(value)) else float(value)
                 rows.append(
                     {
